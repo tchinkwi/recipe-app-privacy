@@ -251,6 +251,9 @@ def main():
 
     if args.project_json:
         project = load_project(args.project_json)
+        # Allow overriding TTS provider when working with an existing project
+        if args.voice_provider:
+            project.meta.tts_provider = args.voice_provider  # type: ignore
         out_dir = os.path.dirname(args.project_json)
     else:
         if not args.title:
@@ -281,7 +284,8 @@ def main():
 
     # Save if modified
     project_json_path = os.path.join(out_dir, "project.json")
-    if changed:
+    if changed or args.voice_provider:
+        # persist provider override too
         save_project(project, project_json_path)
         print(f"Project updated: {project_json_path}")
 
