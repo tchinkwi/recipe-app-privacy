@@ -1,0 +1,205 @@
+{
+  "meta": {
+    "title": "Your Life as a Moose",
+    "slug": "your-life-as-a-moose",
+    "style_prompt": "calm, minimalist, sleepy, gentle intrigue",
+    "reference_image": null,
+    "image_provider": "google",
+    "tts_provider": "edge"
+  },
+  "scenes": [
+    {
+      "scene_id": 1,
+      "paragraph_text": "Picture a misty dawn. The forest is still, shrouded in a soft, grey light. Dewdrops cling to the leaves, sparkling like tiny diamonds. The air is crisp and cool against your velvety antlers, and the ground beneath your hooves is damp and yielding. You are a moose, waking in your peaceful forest home.",
+      "image_path": "/workspace/outputs/your-life-as-a-moose-v2/assets/scene_01.jpg",
+      "image_prompt": "Create a concise, vivid visual prompt for an illustration that represents the paragraph content. No text in the image. Keep it calm and suitable for a sleepy story. Style: calm, minimalist, sleepy, gentle intrigue. Paragraph: Picture a misty dawn. The forest is still, shrouded in a soft, grey light. Dewdrops cling to the leaves, sparkling like tiny diamonds. The air is crisp and cool against your velvety antlers, and the ground beneath your hooves is damp and yielding. You are a moose, waking in your peaceful forest home.",
+      "voiceover_path": "/workspace/outputs/your-life-as-a-moose-v2/assets/scene_01.mp3",
+      "voice": {
+        "provider": "edge",
+        "voice_name_or_id": "en-US-JennyNeural",
+        "style": null,
+        "rate": null,
+        "pitch": null,
+        "emotion": null
+      },
+      "duration_sec": 6.0,
+      "motion": {
+        "pan_start": 0.0,
+        "pan_end": 0.0,
+        "zoom_start": 1.0,
+        "zoom_end": 1.05
+      },
+      "transition_in": {
+        "type": "crossfade",
+        "duration_sec": 0.6
+      },
+      "transition_out": {
+        "type": "crossfade",
+        "duration_sec": 0.6
+      },
+      "captions": null
+    },
+    {
+      "scene_id": 2,
+      "paragraph_text": "A deep, contented sigh escapes your broad chest.  The forest floor is soft beneath your legs as you rise.  The scent of pine needles and damp earth fills your nostrils.  You stretch your long, powerful legs, feeling a pleasant ache as your muscles awaken.",
+      "image_path": "/workspace/outputs/your-life-as-a-moose-v2/assets/scene_02.jpg",
+      "image_prompt": "Create a concise, vivid visual prompt for an illustration that represents the paragraph content. No text in the image. Keep it calm and suitable for a sleepy story. Style: calm, minimalist, sleepy, gentle intrigue. Paragraph: A deep, contented sigh escapes your broad chest.  The forest floor is soft beneath your legs as you rise.  The scent of pine needles and damp earth fills your nostrils.  You stretch your long, powerful legs, feeling a pleasant ache as your muscles awaken.",
+      "voiceover_path": "/workspace/outputs/your-life-as-a-moose-v2/assets/scene_02.mp3",
+      "voice": {
+        "provider": "edge",
+        "voice_name_or_id": "en-US-JennyNeural",
+        "style": null,
+        "rate": null,
+        "pitch": null,
+        "emotion": null
+      },
+      "duration_sec": 6.0,
+      "motion": {
+        "pan_start": 0.0,
+        "pan_end": 0.0,
+        "zoom_start": 1.0,
+        "zoom_end": 1.05
+      },
+      "transition_in": {
+        "type": "crossfade",
+        "duration_sec": 0.6
+      },
+      "transition_out": {
+        "type": "crossfade",
+        "duration_sec": 0.6
+      },
+      "captions": null
+    },
+    {
+      "scene_id": 3,
+      "paragraph_text": "The silence of the dawn is broken by a faint sound \u2013 the rhythmic thud of distant hooves. You tilt your head, your large, dark eyes scanning the mist-shrouded trees.  Curiosity tugs at you.  What could be making that sound?",
+      "image_path": "/workspace/outputs/your-life-as-a-moose-v2/assets/scene_03.jpg",
+      "image_prompt": "Create a concise, vivid visual prompt for an illustration that represents the paragraph content. No text in the image. Keep it calm and suitable for a sleepy story. Style: calm, minimalist, sleepy, gentle intrigue. Paragraph: The silence of the dawn is broken by a faint sound \u2013 the rhythmic thud of distant hooves. You tilt your head, your large, dark eyes scanning the mist-shrouded trees.  Curiosity tugs at you.  What could be making that sound?",
+      "voiceover_path": "/workspace/outputs/your-life-as-a-moose-v2/assets/scene_03.mp3",
+      "voice": {
+        "provider": "edge",
+        "voice_name_or_id": "en-US-JennyNeural",
+        "style": null,
+        "rate": null,
+        "pitch": null,
+        "emotion": null
+      },
+      "duration_sec": 6.0,
+      "motion": {
+        "pan_start": 0.0,
+        "pan_end": 0.0,
+        "zoom_start": 1.0,
+        "zoom_end": 1.05
+      },
+      "transition_in": {
+        "type": "crossfade",
+        "duration_sec": 0.6
+      },
+      "transition_out": {
+        "type": "crossfade",
+        "duration_sec": 0.6
+      },
+      "captions": null
+    },
+    {
+      "scene_id": 4,
+      "paragraph_text": "Moving silently through the trees, you catch a fleeting glimpse of movement in the distance.  A dark shape, large and antlered, emerges briefly from the swirling mist.  Your heart beats a little faster.  Is it friend or foe?",
+      "image_path": "/workspace/outputs/your-life-as-a-moose-v2/assets/scene_04.jpg",
+      "image_prompt": "Create a concise, vivid visual prompt for an illustration that represents the paragraph content. No text in the image. Keep it calm and suitable for a sleepy story. Style: calm, minimalist, sleepy, gentle intrigue. Paragraph: Moving silently through the trees, you catch a fleeting glimpse of movement in the distance.  A dark shape, large and antlered, emerges briefly from the swirling mist.  Your heart beats a little faster.  Is it friend or foe?",
+      "voiceover_path": "/workspace/outputs/your-life-as-a-moose-v2/assets/scene_04.mp3",
+      "voice": {
+        "provider": "edge",
+        "voice_name_or_id": "en-US-JennyNeural",
+        "style": null,
+        "rate": null,
+        "pitch": null,
+        "emotion": null
+      },
+      "duration_sec": 6.0,
+      "motion": {
+        "pan_start": 0.0,
+        "pan_end": 0.0,
+        "zoom_start": 1.0,
+        "zoom_end": 1.05
+      },
+      "transition_in": {
+        "type": "crossfade",
+        "duration_sec": 0.6
+      },
+      "transition_out": {
+        "type": "crossfade",
+        "duration_sec": 0.6
+      },
+      "captions": null
+    },
+    {
+      "scene_id": 5,
+      "paragraph_text": "As you approach, the mist begins to clear, revealing another moose.  It\u2019s a young female, her coat a rich, dark brown. She looks up at you with calm, gentle eyes.  Relief washes over you.  There's no threat here, only the quiet companionship of another gentle giant.",
+      "image_path": "/workspace/outputs/your-life-as-a-moose-v2/assets/scene_05.jpg",
+      "image_prompt": "Create a concise, vivid visual prompt for an illustration that represents the paragraph content. No text in the image. Keep it calm and suitable for a sleepy story. Style: calm, minimalist, sleepy, gentle intrigue. Paragraph: As you approach, the mist begins to clear, revealing another moose.  It\u2019s a young female, her coat a rich, dark brown. She looks up at you with calm, gentle eyes.  Relief washes over you.  There's no threat here, only the quiet companionship of another gentle giant.",
+      "voiceover_path": "/workspace/outputs/your-life-as-a-moose-v2/assets/scene_05.mp3",
+      "voice": {
+        "provider": "edge",
+        "voice_name_or_id": "en-US-JennyNeural",
+        "style": null,
+        "rate": null,
+        "pitch": null,
+        "emotion": null
+      },
+      "duration_sec": 6.0,
+      "motion": {
+        "pan_start": 0.0,
+        "pan_end": 0.0,
+        "zoom_start": 1.0,
+        "zoom_end": 1.05
+      },
+      "transition_in": {
+        "type": "crossfade",
+        "duration_sec": 0.6
+      },
+      "transition_out": {
+        "type": "crossfade",
+        "duration_sec": 0.6
+      },
+      "captions": null
+    },
+    {
+      "scene_id": 6,
+      "paragraph_text": "Together, you begin to graze on the dewy grass, the morning mist slowly lifting to reveal the sun-drenched forest. The gentle warmth on your back invites a deep sense of peace. Breathe in the calm. Let your worries fade away.  Sweet dreams\u2026",
+      "image_path": "/workspace/outputs/your-life-as-a-moose-v2/assets/scene_06.jpg",
+      "image_prompt": "Create a concise, vivid visual prompt for an illustration that represents the paragraph content. No text in the image. Keep it calm and suitable for a sleepy story. Style: calm, minimalist, sleepy, gentle intrigue. Paragraph: Together, you begin to graze on the dewy grass, the morning mist slowly lifting to reveal the sun-drenched forest. The gentle warmth on your back invites a deep sense of peace. Breathe in the calm. Let your worries fade away.  Sweet dreams\u2026",
+      "voiceover_path": "/workspace/outputs/your-life-as-a-moose-v2/assets/scene_06.mp3",
+      "voice": {
+        "provider": "edge",
+        "voice_name_or_id": "en-US-JennyNeural",
+        "style": null,
+        "rate": null,
+        "pitch": null,
+        "emotion": null
+      },
+      "duration_sec": 6.0,
+      "motion": {
+        "pan_start": 0.0,
+        "pan_end": 0.0,
+        "zoom_start": 1.0,
+        "zoom_end": 1.05
+      },
+      "transition_in": {
+        "type": "crossfade",
+        "duration_sec": 0.6
+      },
+      "transition_out": {
+        "type": "crossfade",
+        "duration_sec": 0.6
+      },
+      "captions": null
+    }
+  ],
+  "assets_dir": "/workspace/outputs/your-life-as-a-moose-v2/assets",
+  "output_video_path": "/workspace/outputs/your-life-as-a-moose-v2/your-life-as-a-moose.mp4",
+  "fps": 30,
+  "width": 1920,
+  "height": 1080,
+  "bg_music_path": null,
+  "sfx": null
+}
