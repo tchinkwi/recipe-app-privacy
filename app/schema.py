@@ -45,7 +45,7 @@ class ProjectMeta(BaseModel):
     slug: str
     style_prompt: Optional[str] = None
     reference_image: Optional[str] = None
-    image_provider: Literal["stability", "placeholder"] = "stability"
+    image_provider: Literal["stability", "placeholder", "google"] = "stability"
     tts_provider: Literal["azure", "elevenlabs", "none"] = "azure"
 
 

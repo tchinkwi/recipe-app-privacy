@@ -12,6 +12,7 @@ from app.schema import VideoProject, ProjectMeta, Scene, VoiceSpec, ImageMotion,
 from app.llm.gemini_client import GeminiClient
 from app.images.stability_client import StabilityClient
 from app.images.placeholder_client import PlaceholderImageClient
+from app.images.google_client import GoogleImageClient
 from app.tts.azure_tts_client import AzureTTSClient
 from app.tts.elevenlabs_client import ElevenLabsClient
 from app.renderer.video_renderer import render_video
@@ -81,8 +82,9 @@ def generate_project(title: str, num_paragraphs: int, style_prompt: Optional[str
     )
 
     # Providers
-    placeholder = PlaceholderImageClient()
+    placeholder = PlaceholderImageClient() if image_provider == "placeholder" else None
     stability = StabilityClient() if image_provider == "stability" else None
+    google_img = GoogleImageClient() if image_provider == "google" else None
     tts_azure = AzureTTSClient() if voice_provider == "azure" else None
     tts_el = ElevenLabsClient() if voice_provider == "elevenlabs" else None
 
@@ -94,6 +96,8 @@ def generate_project(title: str, num_paragraphs: int, style_prompt: Optional[str
                 img = stability.img2img(scene.image_prompt, ref_img, strength=0.35, width=project.width, height=project.height)
             else:
                 img = stability.generate(scene.image_prompt, width=project.width, height=project.height)
+        elif image_provider == "google":
+            img = google_img.generate(scene.image_prompt or scene.paragraph_text, width=project.width, height=project.height)
         else:
             img = placeholder.generate(scene.image_prompt or scene.paragraph_text, width=project.width, height=project.height)
         img_path = os.path.join(project.assets_dir, f"scene_{scene.scene_id:02d}.jpg")
@@ -144,6 +148,7 @@ def regenerate(project: VideoProject, which: str, what: List[str], style_prompt:
     img_provider = project.meta.image_provider
     stability = StabilityClient() if img_provider == "stability" else None
     placeholder = PlaceholderImageClient() if img_provider == "placeholder" else None
+    google_img = GoogleImageClient() if img_provider == "google" else None
 
     parts = which.split(":")
     if parts[0] != "scene":
@@ -162,6 +167,8 @@ def regenerate(project: VideoProject, which: str, what: List[str], style_prompt:
                 img = stability.img2img(target_scene.image_prompt, ref, strength=0.35, width=project.width, height=project.height)
             else:
                 img = stability.generate(target_scene.image_prompt, width=project.width, height=project.height)
+        elif img_provider == "google":
+            img = google_img.generate(target_scene.image_prompt or target_scene.paragraph_text, width=project.width, height=project.height)
         else:
             img = placeholder.generate(target_scene.image_prompt or target_scene.paragraph_text, width=project.width, height=project.height)
         img_path = os.path.join(project.assets_dir, f"scene_{target_scene.scene_id:02d}.jpg")
@@ -202,7 +209,7 @@ def main():
     ap.add_argument("--image-size", type=str, default=CONFIG.default_image_size)
     ap.add_argument("--source-url", type=str, default=None)
 
-    ap.add_argument("--image-provider", type=str, choices=["stability", "placeholder"], default=None)
+    ap.add_argument("--image-provider", type=str, choices=["stability", "placeholder", "google"], default=None)
     ap.add_argument("--voice-provider", type=str, choices=["azure", "elevenlabs", "none"], default=None)
     ap.add_argument("--azure-voice", type=str, default=CONFIG.default_azure_voice)
     ap.add_argument("--elevenlabs-voice-id", type=str, default=None)
@@ -218,7 +225,7 @@ def main():
     args = ap.parse_args()
 
     # Determine providers if not explicitly set
-    img_provider = args.image_provider or ("stability" if CONFIG.stability_api_key else "placeholder")
+    img_provider = args.image_provider or ("stability" if CONFIG.stability_api_key else ("google" if CONFIG.google_api_key else "placeholder"))
     voice_provider = args.voice_provider or ("azure" if CONFIG.azure_speech_key and CONFIG.azure_speech_region else "none")
 
     if args.project_json:

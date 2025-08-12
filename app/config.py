@@ -19,6 +19,7 @@ def _env(name: str, default: Optional[str] = None) -> Optional[str]:
 @dataclass
 class AppConfig:
     google_api_key: Optional[str] = _env("GOOGLE_API_KEY")
+    google_image_model: str = _env("GOOGLE_IMAGE_MODEL", "imagen-4.0-generate-preview-06-06") or "imagen-4.0-generate-preview-06-06"
 
     stability_api_key: Optional[str] = _env("STABILITY_API_KEY")
     stability_engine: str = _env("STABILITY_ENGINE", "stable-diffusion-xl-1024-v1-0") or "stable-diffusion-xl-1024-v1-0"

@@ -6,6 +6,10 @@ from moviepy.editor import ImageClip, AudioFileClip, concatenate_videoclips, Com
 import numpy as np
 from PIL import Image
 
+# Pillow>=10 removed ANTIALIAS; alias to LANCZOS for MoviePy compatibility
+if not hasattr(Image, "ANTIALIAS"):
+    Image.ANTIALIAS = Image.LANCZOS  # type: ignore[attr-defined]
+
 from app.schema import VideoProject, Scene
 
 
@@ -29,7 +33,7 @@ def _ken_burns_clip(image_path: str, duration: float, width: int, height: int, p
         img = Image.fromarray(cropped).resize((width, height), Image.LANCZOS)
         return np.array(img)
 
-    animated = base_clip.set_duration(duration).fl(make_frame)
+    animated = base_clip.set_duration(duration).set_make_frame(make_frame)
     return animated
 
 
