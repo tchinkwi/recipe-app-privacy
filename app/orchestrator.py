@@ -11,6 +11,7 @@ from app.config import CONFIG
 from app.schema import VideoProject, ProjectMeta, Scene, VoiceSpec, ImageMotion, slugify
 from app.llm.gemini_client import GeminiClient
 from app.images.stability_client import StabilityClient
+from app.images.placeholder_client import PlaceholderImageClient
 from app.tts.azure_tts_client import AzureTTSClient
 from app.tts.elevenlabs_client import ElevenLabsClient
 from app.renderer.video_renderer import render_video
@@ -25,20 +26,20 @@ def parse_size(s: str) -> tuple[int, int]:
     return int(w), int(h)
 
 
-def generate_project(title: str, num_paragraphs: int, style_prompt: Optional[str], reference_image: Optional[str], voice_provider: str, azure_voice: Optional[str], elevenlabs_voice_id: Optional[str], width: int, height: int, out_dir: str) -> VideoProject:
+def generate_project(title: str, num_paragraphs: int, style_prompt: Optional[str], reference_image: Optional[str], image_provider: str, voice_provider: str, azure_voice: Optional[str], elevenlabs_voice_id: Optional[str], width: int, height: int, out_dir: str, source_url: Optional[str]) -> VideoProject:
     ensure_dir(out_dir)
     assets_dir = os.path.join(out_dir, "assets")
     ensure_dir(assets_dir)
 
     gemini = GeminiClient()
-    story = gemini.generate_story_outline(title=title, num_paragraphs=num_paragraphs, style_prompt=style_prompt)
+    story = gemini.generate_story_outline(title=title, num_paragraphs=num_paragraphs, style_prompt=style_prompt, source_url=source_url)
 
     meta = ProjectMeta(
         title=title,
         slug=slugify(title),
         style_prompt=style_prompt,
         reference_image=reference_image,
-        image_provider="stability",
+        image_provider=image_provider,  # type: ignore
         tts_provider=voice_provider,  # type: ignore
     )
 
@@ -46,13 +47,20 @@ def generate_project(title: str, num_paragraphs: int, style_prompt: Optional[str
     scenes: List[Scene] = []
     for idx, paragraph in enumerate(story.get("paragraphs", [])[:num_paragraphs]):
         image_prompt = gemini.image_prompt_for_paragraph(paragraph, style_prompt)
-        voice = VoiceSpec(
-            provider=voice_provider,  # type: ignore
-            voice_name_or_id=(azure_voice if voice_provider == "azure" else (elevenlabs_voice_id or CONFIG.elevenlabs_voice_id or "")),
-            style=(CONFIG.default_voice_style if voice_provider == "azure" else None),
-            rate=None,
-            pitch=None,
-        )
+        voice_spec: Optional[VoiceSpec]
+        if voice_provider == "none":
+            voice_spec = VoiceSpec(provider="none")
+        elif voice_provider == "azure":
+            voice_spec = VoiceSpec(
+                provider="azure",
+                voice_name_or_id=(azure_voice or CONFIG.default_azure_voice),
+                style=(CONFIG.default_voice_style),
+            )
+        else:
+            voice_spec = VoiceSpec(
+                provider="elevenlabs",
+                voice_name_or_id=(elevenlabs_voice_id or CONFIG.elevenlabs_voice_id or ""),
+            )
         duration = 6.0
         scenes.append(Scene(
             scene_id=idx + 1,
@@ -60,7 +68,7 @@ def generate_project(title: str, num_paragraphs: int, style_prompt: Optional[str
             image_prompt=image_prompt,
             duration_sec=duration,
             motion=ImageMotion(),
-            voice=voice,
+            voice=voice_spec,
         ))
 
     project = VideoProject(
@@ -72,31 +80,39 @@ def generate_project(title: str, num_paragraphs: int, style_prompt: Optional[str
         output_video_path=os.path.join(out_dir, f"{meta.slug}.mp4"),
     )
 
-    # Generate assets
-    stability = StabilityClient()
-    if voice_provider == "azure":
-        tts = AzureTTSClient()
-    else:
-        tts = ElevenLabsClient()
+    # Providers
+    placeholder = PlaceholderImageClient()
+    stability = StabilityClient() if image_provider == "stability" else None
+    tts_azure = AzureTTSClient() if voice_provider == "azure" else None
+    tts_el = ElevenLabsClient() if voice_provider == "elevenlabs" else None
 
     ref_img = reference_image
     for scene in project.scenes:
         # Image
-        if ref_img:
-            img = stability.img2img(scene.image_prompt, ref_img, strength=0.35, width=project.width, height=project.height)
+        if image_provider == "stability":
+            if ref_img:
+                img = stability.img2img(scene.image_prompt, ref_img, strength=0.35, width=project.width, height=project.height)
+            else:
+                img = stability.generate(scene.image_prompt, width=project.width, height=project.height)
         else:
-            img = stability.generate(scene.image_prompt, width=project.width, height=project.height)
+            img = placeholder.generate(scene.image_prompt or scene.paragraph_text, width=project.width, height=project.height)
         img_path = os.path.join(project.assets_dir, f"scene_{scene.scene_id:02d}.jpg")
         img.save(img_path)
         scene.image_path = img_path
 
         # Voice
-        voice_out = os.path.join(project.assets_dir, f"scene_{scene.scene_id:02d}.mp3")
         if voice_provider == "azure":
-            tts.synthesize_to_file(text=scene.paragraph_text, output_path=voice_out, voice_name=scene.voice.voice_name_or_id, style=scene.voice.style)
+            voice_out = os.path.join(project.assets_dir, f"scene_{scene.scene_id:02d}.mp3")
+            assert scene.voice
+            tts_azure.synthesize_to_file(text=scene.paragraph_text, output_path=voice_out, voice_name=scene.voice.voice_name_or_id, style=scene.voice.style)
+            scene.voiceover_path = voice_out
+        elif voice_provider == "elevenlabs":
+            voice_out = os.path.join(project.assets_dir, f"scene_{scene.scene_id:02d}.mp3")
+            assert scene.voice
+            tts_el.synthesize_to_file(text=scene.paragraph_text, output_path=voice_out, voice_id=scene.voice.voice_name_or_id)
+            scene.voiceover_path = voice_out
         else:
-            tts.synthesize_to_file(text=scene.paragraph_text, output_path=voice_out, voice_id=scene.voice.voice_name_or_id)
-        scene.voiceover_path = voice_out
+            scene.voiceover_path = None
 
     # Save JSON
     project_json = os.path.join(out_dir, "project.json")
@@ -124,12 +140,10 @@ def regenerate(project: VideoProject, which: str, what: List[str], style_prompt:
     regenerate_voice = "voice" in what or "both" in what
 
     gemini = GeminiClient()
-    stability = StabilityClient()
-    tts = None
-    if project.meta.tts_provider == "azure":
-        tts = AzureTTSClient()
-    else:
-        tts = ElevenLabsClient()
+    # Image providers
+    img_provider = project.meta.image_provider
+    stability = StabilityClient() if img_provider == "stability" else None
+    placeholder = PlaceholderImageClient() if img_provider == "placeholder" else None
 
     parts = which.split(":")
     if parts[0] != "scene":
@@ -142,16 +156,19 @@ def regenerate(project: VideoProject, which: str, what: List[str], style_prompt:
 
     if regenerate_image:
         target_scene.image_prompt = gemini.image_prompt_for_paragraph(target_scene.paragraph_text, style_prompt)
-        if reference_image or project.meta.reference_image:
-            ref = reference_image or project.meta.reference_image
-            img = stability.img2img(target_scene.image_prompt, ref, strength=0.35, width=project.width, height=project.height)
+        if img_provider == "stability":
+            if reference_image or project.meta.reference_image:
+                ref = reference_image or project.meta.reference_image
+                img = stability.img2img(target_scene.image_prompt, ref, strength=0.35, width=project.width, height=project.height)
+            else:
+                img = stability.generate(target_scene.image_prompt, width=project.width, height=project.height)
         else:
-            img = stability.generate(target_scene.image_prompt, width=project.width, height=project.height)
+            img = placeholder.generate(target_scene.image_prompt or target_scene.paragraph_text, width=project.width, height=project.height)
         img_path = os.path.join(project.assets_dir, f"scene_{target_scene.scene_id:02d}.jpg")
         img.save(img_path)
         target_scene.image_path = img_path
 
-    if regenerate_voice:
+    if regenerate_voice and project.meta.tts_provider != "none":
         out = os.path.join(project.assets_dir, f"scene_{target_scene.scene_id:02d}.mp3")
         if project.meta.tts_provider == "azure":
             assert target_scene.voice
@@ -163,7 +180,7 @@ def regenerate(project: VideoProject, which: str, what: List[str], style_prompt:
                 rate=target_scene.voice.rate,
                 pitch=target_scene.voice.pitch,
             )
-        else:
+        elif project.meta.tts_provider == "elevenlabs":
             assert target_scene.voice
             ElevenLabsClient().synthesize_to_file(
                 text=target_scene.paragraph_text,
@@ -183,8 +200,10 @@ def main():
     ap.add_argument("--reference-image", type=str, default=None)
     ap.add_argument("--output-dir", type=str, default=None)
     ap.add_argument("--image-size", type=str, default=CONFIG.default_image_size)
+    ap.add_argument("--source-url", type=str, default=None)
 
-    ap.add_argument("--voice-provider", type=str, choices=["azure", "elevenlabs"], default=CONFIG.default_voice_provider)
+    ap.add_argument("--image-provider", type=str, choices=["stability", "placeholder"], default=None)
+    ap.add_argument("--voice-provider", type=str, choices=["azure", "elevenlabs", "none"], default=None)
     ap.add_argument("--azure-voice", type=str, default=CONFIG.default_azure_voice)
     ap.add_argument("--elevenlabs-voice-id", type=str, default=None)
     ap.add_argument("--voice-style", type=str, default=CONFIG.default_voice_style)
@@ -197,6 +216,10 @@ def main():
     ap.add_argument("--render", action="store_true")
 
     args = ap.parse_args()
+
+    # Determine providers if not explicitly set
+    img_provider = args.image_provider or ("stability" if CONFIG.stability_api_key else "placeholder")
+    voice_provider = args.voice_provider or ("azure" if CONFIG.azure_speech_key and CONFIG.azure_speech_region else "none")
 
     if args.project_json:
         project = load_project(args.project_json)
@@ -211,12 +234,14 @@ def main():
             num_paragraphs=args.num_paragraphs,
             style_prompt=args.style_prompt,
             reference_image=args.reference_image,
-            voice_provider=args.voice_provider,
+            image_provider=img_provider,
+            voice_provider=voice_provider,
             azure_voice=args.azure_voice,
             elevenlabs_voice_id=args.elevenlabs_voice_id,
             width=width,
             height=height,
             out_dir=out_dir,
+            source_url=args.source_url,
         )
 
     # Apply regen if requested

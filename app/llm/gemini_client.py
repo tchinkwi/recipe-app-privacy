@@ -14,24 +14,24 @@ class GeminiClient:
         genai.configure(api_key=self.api_key)
         self.model = genai.GenerativeModel(model_name)
 
-    def generate_story_outline(self, title: str, num_paragraphs: int, audience: str = "sleepy story", style_prompt: str | None = None) -> Dict:
+    def generate_story_outline(self, title: str, num_paragraphs: int, audience: str = "sleepy story", style_prompt: str | None = None, source_url: str | None = None) -> Dict:
         sys = (
             "You are an expert YouTube scriptwriter focused on retention. "
             "Craft hooks, micro-tension, and curiosity loops suitable for calm, sleepy storytelling that still keeps attention."
         )
+        url_line = f"Source inspiration: {source_url}\n" if source_url else ""
         user = (
             f"Title: {title}\n"
+            f"{url_line}"
             f"Audience: {audience}\n"
             f"Paragraphs: {num_paragraphs}\n"
             f"Style: {style_prompt or 'calm, minimalist'}\n\n"
             "Return JSON with keys: hook, outline (array of paragraph summaries), "+
             "paragraphs (array of full paragraphs, 3-5 sentences each), and retention_notes (bulleted strategies used)."
         )
-        resp = self.model.generate_content([
-            {"role": "system", "parts": [sys]},
-            {"role": "user", "parts": [user]},
-        ])
-        text = resp.text
+        prompt = sys + "\n\n" + user
+        resp = self.model.generate_content(prompt)
+        text = resp.text or ""
         # The model returns Markdown sometimes; attempt to extract JSON
         import json, re
         match = re.search(r"\{[\s\S]*\}$", text.strip())
