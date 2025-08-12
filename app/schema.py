@@ -18,7 +18,7 @@ class Transition(BaseModel):
 
 
 class VoiceSpec(BaseModel):
-    provider: Literal["azure", "elevenlabs", "none"] = "azure"
+    provider: Literal["azure", "elevenlabs", "edge", "none"] = "azure"
     voice_name_or_id: str = ""
     style: Optional[str] = None
     rate: Optional[str] = None  # e.g. "+5%", "-10%"
@@ -46,7 +46,7 @@ class ProjectMeta(BaseModel):
     style_prompt: Optional[str] = None
     reference_image: Optional[str] = None
     image_provider: Literal["stability", "placeholder", "google"] = "stability"
-    tts_provider: Literal["azure", "elevenlabs", "none"] = "azure"
+    tts_provider: Literal["azure", "elevenlabs", "edge", "none"] = "azure"
 
 
 class VideoProject(BaseModel):

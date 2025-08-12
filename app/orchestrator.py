@@ -15,6 +15,7 @@ from app.images.placeholder_client import PlaceholderImageClient
 from app.images.google_client import GoogleImageClient
 from app.tts.azure_tts_client import AzureTTSClient
 from app.tts.elevenlabs_client import ElevenLabsClient
+from app.tts.edge_tts_client import EdgeTTSClient
 from app.renderer.video_renderer import render_video
 
 
@@ -57,10 +58,15 @@ def generate_project(title: str, num_paragraphs: int, style_prompt: Optional[str
                 voice_name_or_id=(azure_voice or CONFIG.default_azure_voice),
                 style=(CONFIG.default_voice_style),
             )
-        else:
+        elif voice_provider == "elevenlabs":
             voice_spec = VoiceSpec(
                 provider="elevenlabs",
                 voice_name_or_id=(elevenlabs_voice_id or CONFIG.elevenlabs_voice_id or ""),
+            )
+        else:  # edge
+            voice_spec = VoiceSpec(
+                provider="edge",
+                voice_name_or_id=azure_voice or "en-US-JennyNeural",
             )
         duration = 6.0
         scenes.append(Scene(
@@ -87,6 +93,7 @@ def generate_project(title: str, num_paragraphs: int, style_prompt: Optional[str
     google_img = GoogleImageClient() if image_provider == "google" else None
     tts_azure = AzureTTSClient() if voice_provider == "azure" else None
     tts_el = ElevenLabsClient() if voice_provider == "elevenlabs" else None
+    tts_edge = EdgeTTSClient() if voice_provider == "edge" else None
 
     ref_img = reference_image
     for scene in project.scenes:
@@ -114,6 +121,11 @@ def generate_project(title: str, num_paragraphs: int, style_prompt: Optional[str
             voice_out = os.path.join(project.assets_dir, f"scene_{scene.scene_id:02d}.mp3")
             assert scene.voice
             tts_el.synthesize_to_file(text=scene.paragraph_text, output_path=voice_out, voice_id=scene.voice.voice_name_or_id)
+            scene.voiceover_path = voice_out
+        elif voice_provider == "edge":
+            voice_out = os.path.join(project.assets_dir, f"scene_{scene.scene_id:02d}.mp3")
+            assert scene.voice
+            tts_edge.synthesize_to_file(text=scene.paragraph_text, output_path=voice_out, voice=scene.voice.voice_name_or_id, rate=scene.voice.rate, pitch=scene.voice.pitch)
             scene.voiceover_path = voice_out
         else:
             scene.voiceover_path = None
@@ -194,6 +206,15 @@ def regenerate(project: VideoProject, which: str, what: List[str], style_prompt:
                 output_path=out,
                 voice_id=target_scene.voice.voice_name_or_id,
             )
+        elif project.meta.tts_provider == "edge":
+            assert target_scene.voice
+            EdgeTTSClient().synthesize_to_file(
+                text=target_scene.paragraph_text,
+                output_path=out,
+                voice=target_scene.voice.voice_name_or_id,
+                rate=target_scene.voice.rate,
+                pitch=target_scene.voice.pitch,
+            )
         target_scene.voiceover_path = out
 
     return project
@@ -210,7 +231,7 @@ def main():
     ap.add_argument("--source-url", type=str, default=None)
 
     ap.add_argument("--image-provider", type=str, choices=["stability", "placeholder", "google"], default=None)
-    ap.add_argument("--voice-provider", type=str, choices=["azure", "elevenlabs", "none"], default=None)
+    ap.add_argument("--voice-provider", type=str, choices=["azure", "elevenlabs", "edge", "none"], default=None)
     ap.add_argument("--azure-voice", type=str, default=CONFIG.default_azure_voice)
     ap.add_argument("--elevenlabs-voice-id", type=str, default=None)
     ap.add_argument("--voice-style", type=str, default=CONFIG.default_voice_style)
@@ -226,7 +247,7 @@ def main():
 
     # Determine providers if not explicitly set
     img_provider = args.image_provider or ("stability" if CONFIG.stability_api_key else ("google" if CONFIG.google_api_key else "placeholder"))
-    voice_provider = args.voice_provider or ("azure" if CONFIG.azure_speech_key and CONFIG.azure_speech_region else "none")
+    voice_provider = args.voice_provider or ("azure" if CONFIG.azure_speech_key and CONFIG.azure_speech_region else "edge")
 
     if args.project_json:
         project = load_project(args.project_json)
